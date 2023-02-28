@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require("path");
+const sourcePath = "./praksa/";
 const destinationPath = "./destination/";
 
 function getMostRecentFiles(dir, arr) {
@@ -20,7 +21,7 @@ function getMostRecentFiles(dir, arr) {
 
   console.log("Getting most recent files...")
   let mostRecentFilePaths = [];
-  getMostRecentFiles('./praksa/',mostRecentFilePaths);
+  getMostRecentFiles(sourcePath,mostRecentFilePaths);
   console.log("Done!");
 
   console.log("Copying files...");
