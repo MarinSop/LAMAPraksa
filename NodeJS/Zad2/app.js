@@ -17,7 +17,7 @@ app.get('/users/:userID', (req, res, next) => {
        next(err);
     }
         const dataJson = JSON.parse(data);
-        let user = dataJson.users.find(x => x.id == req.params.userID);
+        let user = dataJson.users.find(x => x.id == req.query.userID);
         if(!user)
         {
             res.statusCode = 404;
@@ -67,7 +67,7 @@ app.get('/posts/:postID', (req, res, next) => {
          next(err);
       }
           const dataJson = JSON.parse(data);
-          let post = dataJson.posts.find(x => x.id == req.params.postID);
+          let post = dataJson.posts.find(x => x.id == req.query.postID);
           if(!post)
           {
               res.statusCode = 404;
@@ -89,7 +89,7 @@ app.get('/posts/:postID', (req, res, next) => {
          next(err);
       }
           const dataJson = JSON.parse(data);
-          let userIndex = dataJson.users.findIndex(x => x.id == req.params.userID);
+          let userIndex = dataJson.users.findIndex(x => x.id == req.query.userID);
           if(userIndex == -1)
           {
             res.statusCode = 404;
