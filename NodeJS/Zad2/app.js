@@ -1,5 +1,6 @@
 const fs = require('fs');
-const express = require('express')
+const express = require('express');
+const cors = require('cors');
 const app = express()
 const port = 3000
 const dataPath = './data.json'
@@ -9,25 +10,41 @@ const errorHandler = function (err, req, res, next){
     res.status(res.statusCode).send(err.message);
   }
 
+  app.use(cors());
 
+  app.get('/users/:userID', (req, res, next) => {
+    fs.readFile(dataPath, (err, data) => {
+      if (err) {
+         next(err);
+      }
+          const dataJson = JSON.parse(data);
+          let user = dataJson.users.find(x => x.id == req.params.userID);
+          if(!user)
+          {
+              res.statusCode = 404;
+              next(new Error("User not found."));
+          }
+          res.set('Access-Control-Allow-Origin', 'http://localhost:4200');
+          res.send(user);
+          
+      });
+  
+  });
+  
+  app.get('/users', (req, res, next) => {
+    fs.readFile(dataPath, (err, data) => {
+      if (err) {
+         next(err);
+      }
+          const dataJson = JSON.parse(data);
+          let users = dataJson.users;
+          res.set('Access-Control-Allow-Origin', 'http://localhost:4200');
+          res.send(users);
+          
+      });
+  
+  });
 
-app.get('/users/:userID', (req, res, next) => {
-  fs.readFile(dataPath, (err, data) => {
-    if (err) {
-       next(err);
-    }
-        const dataJson = JSON.parse(data);
-        let user = dataJson.users.find(x => x.id == req.query.userID);
-        if(!user)
-        {
-            res.statusCode = 404;
-            next(new Error("User not found."));
-        }
-        res.send(user);
-        
-    });
-
-});
 
 app.get('/posts/date', (req, res, next) => {
   fs.readFile(dataPath, (err, data) => {
@@ -56,6 +73,7 @@ app.get('/posts/date', (req, res, next) => {
           }
           return pDate.getTime() >= start.getTime() && pDate.getTime() <= end.getTime();
         })
+        res.set('Access-Control-Allow-Origin', 'http://localhost:4200');
         res.send(posts);
         
     });
@@ -67,14 +85,15 @@ app.get('/posts/:postID', (req, res, next) => {
          next(err);
       }
           const dataJson = JSON.parse(data);
-          let post = dataJson.posts.find(x => x.id == req.query.postID);
+          let post = dataJson.posts.filter(x => x.user_id == req.params.postID);
           if(!post)
           {
               res.statusCode = 404;
-              next(new Error("Post not found."));
+              next(new Error("Posts not found."));
           }
           else
           {
+            res.set('Access-Control-Allow-Origin', 'http://localhost:4200');
             res.send(post);
           }
           
@@ -82,7 +101,7 @@ app.get('/posts/:postID', (req, res, next) => {
   
   });
 
-  app.post("/users/:userID",(req,res,next) =>{
+  app.post("/users",(req,res,next) =>{
 
     fs.readFile(dataPath, (err, data) => {
       if (err) {
@@ -97,20 +116,22 @@ app.get('/posts/:postID', (req, res, next) => {
           }
           else
           {
-            dataJson.users[userIndex].email = req.query.noviEmail;
+            dataJson.users[userIndex].name = req.query.name;
+            dataJson.users[userIndex].email = req.query.email;
             fs.writeFile(dataPath,JSON.stringify(dataJson),(err) => {
               if(err)
               {
                 next(err);
               }
             });
+            res.set('Access-Control-Allow-Origin', 'http://localhost:4200');
             res.send(dataJson.users[userIndex]);
           }
       });
 
   });
 
-  app.put("/users",(req,res,next) => {
+  app.put("/posts",(req,res,next) => {
     fs.readFile(dataPath, (err, data) => {
       if (err) {
          next(err);
@@ -135,10 +156,37 @@ app.get('/posts/:postID', (req, res, next) => {
               next(err);
             }
           });
+          res.set('Access-Control-Allow-Origin', 'http://localhost:4200');
             res.send(newPost);
       });
 
-  })
+  });
+
+app.put("/users",(req,res,next) => {
+    fs.readFile(dataPath, (err, data) => {
+      if (err) {
+         next(err);
+      }
+          const dataJson = JSON.parse(data);
+          let id = dataJson.posts[dataJson.users.length -1].id + 1;
+          let newUser = 
+          {
+            "id":id,
+            "name":req.query.name,
+            "email":req.query.email
+          };
+          dataJson.users.push(newUser);
+          fs.writeFile(dataPath,JSON.stringify(dataJson),(err) => {
+            if(err)
+            {
+              next(err);
+            }
+          });
+          res.set('Access-Control-Allow-Origin', 'http://localhost:4200');
+          res.send(newUser);
+      });
+
+  });
 
 
 app.use(errorHandler);
